@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Gravity Forms User Select
- * Plugin URI: https://github.com/your-username/gf-user-select
+ * Plugin URI: https://github.com/fahdi/gf-user-select
  * Description: Adds a "User Select" field type to Gravity Forms, allowing you to create dropdowns populated with WordPress users.
  * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://your-website.com
+ * Author: Fahad Murtaza aka iSuperCoder
+ * Author URI: https://isupercoder.com/contact
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: gf-user-select
