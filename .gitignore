@@ -1,37 +1,85 @@
-# WordPress
-wp-config.php
-wp-content/uploads/
-wp-content/updraft/
-wp-content/.logs/
+# Plugin specific
 *.log
+*.tmp
+*.temp
+cache/
+logs/
+temp/
 
-# IDE
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Dependencies
+# Node.js (if using build tools)
 node_modules/
-vendor/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
 
-# Build
+# Composer
+vendor/
+composer.lock
+
+# Build files
 dist/
 build/
 *.min.js
 *.min.css
 
-# Sensitive files
-PRD.md
-.env
-.env.local
-.env.production
+# Testing
+phpunit.xml
+.phpunit.result.cache
+coverage/
+tests/_output/
 
-# Temporary
-*.tmp
-*.temp
+# Documentation
+docs/_build/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Plugin development
+*.zip
+*.tar.gz
+*.rar
+
+# Security
+*.key
+*.pem
+*.crt
+*.csr
+security*.md
+
+# Main PRD
+PRD.md
+
+# Other files
+*.csv
+*.json
+*.xml
+*.yml
+*.yaml
+*.ini
+*.conf
+*.config
+
+# Shell Scripts
+git-commit.sh
+create-release.sh

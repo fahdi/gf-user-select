@@ -246,3 +246,4 @@ class GF_User_Select_Admin {
         add_settings_error('gf_user_select_settings', 'cache_cleared', 'Cache cleared successfully.', 'updated');
     }
 }
+

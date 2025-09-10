@@ -22,14 +22,25 @@ class GF_User_Select_Ajax {
      * Handle user search AJAX request
      */
     public function handle_user_search() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'gf_user_select_search')) {
-            wp_send_json_error('Invalid nonce');
+        // Verify nonce using plugin's security method
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'gf_user_select_search')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed. Please refresh the page and try again.', 'gf-user-select')
+            ));
         }
 
         // Check permissions
         if (!current_user_can('read')) {
-            wp_send_json_error('Insufficient permissions');
+            wp_send_json_error(array(
+                'message' => __('Insufficient permissions.', 'gf-user-select')
+            ));
+        }
+
+        // Rate limiting check
+        if (!$this->check_rate_limit()) {
+            wp_send_json_error(array(
+                'message' => __('Too many requests. Please try again later.', 'gf-user-select')
+            ));
         }
 
         // Get parameters
@@ -127,4 +138,94 @@ class GF_User_Select_Ajax {
                 return $user->display_name ?: $user->user_login;
         }
     }
+
+    /**
+     * Check rate limiting for AJAX requests
+     */
+    private function check_rate_limit() {
+        $user_id = get_current_user_id();
+        $ip = $this->get_client_ip();
+        $key = 'gf_user_select_rate_limit_' . md5($user_id . $ip);
+        
+        $requests = get_transient($key);
+        if ($requests === false) {
+            set_transient($key, 1, 60); // 1 minute window
+            return true;
+        }
+        
+        if ($requests >= 30) { // Max 30 requests per minute
+            return false;
+        }
+        
+        set_transient($key, $requests + 1, 60);
+        return true;
+    }
+
+    /**
+     * Get client IP address
+     */
+    private function get_client_ip() {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER) === true) {
+                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                    $ip = trim($ip);
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+
+    /**
+     * Sanitize search parameters
+     */
+    private function sanitize_search_params($params) {
+        $sanitized = array();
+        
+        if (isset($params['search'])) {
+            $sanitized['search'] = sanitize_text_field($params['search']);
+        }
+        
+        if (isset($params['roles']) && is_array($params['roles'])) {
+            $sanitized['roles'] = array_map('sanitize_text_field', $params['roles']);
+        }
+        
+        if (isset($params['display_format'])) {
+            $sanitized['display_format'] = sanitize_text_field($params['display_format']);
+        }
+        
+        if (isset($params['template'])) {
+            $sanitized['template'] = sanitize_textarea_field($params['template']);
+        }
+        
+        if (isset($params['page'])) {
+            $sanitized['page'] = absint($params['page']);
+        }
+        
+        if (isset($params['per_page'])) {
+            $sanitized['per_page'] = absint($params['per_page']);
+        }
+        
+        return $sanitized;
+    }
+
+    /**
+     * Validate user roles
+     */
+    private function validate_roles($roles) {
+        $valid_roles = array('administrator', 'editor', 'author', 'contributor', 'subscriber');
+        $filtered_roles = array();
+        
+        foreach ($roles as $role) {
+            if (in_array($role, $valid_roles)) {
+                $filtered_roles[] = $role;
+            }
+        }
+        
+        return empty($filtered_roles) ? $valid_roles : $filtered_roles;
+    }
 }
+

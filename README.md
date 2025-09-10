@@ -141,6 +141,11 @@ Use these merge tags in notifications and confirmations:
 
 ## Changelog
 
+### Version 1.0.1
+- Minor bug fixes and improvements
+- Enhanced security features
+- Performance optimizations
+
 ### Version 1.0.0
 - Initial release
 - Basic user selection functionality
@@ -148,3 +153,4 @@ Use these merge tags in notifications and confirmations:
 - Multiple display formats
 - Auto-selection options
 - Search functionality for large user lists
+

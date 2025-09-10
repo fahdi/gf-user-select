@@ -383,3 +383,4 @@ class GF_Field_User_Select extends GF_Field_Select {
         }
     }
 }
+

@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms User Select
  * Plugin URI: https://github.com/fahdi/gf-user-select
  * Description: Adds a "User Select" field type to Gravity Forms, allowing you to create dropdowns populated with WordPress users.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Fahad Murtaza aka iSuperCoder
  * Author URI: https://isupercoder.com/contact
  * License: GPL v2 or later
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('GF_USER_SELECT_VERSION', '1.0.0');
+define('GF_USER_SELECT_VERSION', '1.0.1');
 define('GF_USER_SELECT_FILE', __FILE__);
 define('GF_USER_SELECT_PATH', plugin_dir_path(__FILE__));
 define('GF_USER_SELECT_URL', plugin_dir_url(__FILE__));
@@ -52,6 +52,7 @@ class GF_User_Select {
      */
     private function __construct() {
         add_action('plugins_loaded', array($this, 'init'));
+        add_action('init', array($this, 'security_init'));
     }
 
     /**
@@ -69,6 +70,20 @@ class GF_User_Select {
 
         // Initialize hooks
         $this->init_hooks();
+    }
+
+    /**
+     * Security initialization
+     */
+    public function security_init() {
+        // Add security headers
+        add_action('send_headers', array($this, 'add_security_headers'));
+        
+        // Sanitize and validate all inputs
+        add_action('init', array($this, 'sanitize_inputs'));
+        
+        // Add capability checks
+        add_action('admin_init', array($this, 'check_admin_capabilities'));
     }
 
     /**
@@ -169,7 +184,103 @@ class GF_User_Select {
         // Clear user list caches
         $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'gf_user_select_cache_%'");
     }
+
+    /**
+     * Add security headers
+     */
+    public function add_security_headers() {
+        if (!headers_sent()) {
+            // Prevent clickjacking
+            header('X-Frame-Options: SAMEORIGIN');
+            
+            // Prevent MIME type sniffing
+            header('X-Content-Type-Options: nosniff');
+            
+            // XSS Protection
+            header('X-XSS-Protection: 1; mode=block');
+            
+            // Referrer Policy
+            header('Referrer-Policy: strict-origin-when-cross-origin');
+        }
+    }
+
+    /**
+     * Sanitize inputs
+     */
+    public function sanitize_inputs() {
+        // Sanitize GET parameters
+        if (!empty($_GET)) {
+            $_GET = array_map('sanitize_text_field', $_GET);
+        }
+        
+        // Sanitize POST parameters (except for form submissions)
+        if (!empty($_POST) && !isset($_POST['gform_submit'])) {
+            $_POST = array_map('sanitize_text_field', $_POST);
+        }
+    }
+
+    /**
+     * Check admin capabilities
+     */
+    public function check_admin_capabilities() {
+        if (is_admin() && !current_user_can('manage_options')) {
+            // Log unauthorized access attempts
+            error_log('GF User Select: Unauthorized admin access attempt from user ID: ' . get_current_user_id());
+        }
+    }
+
+    /**
+     * Validate nonce for AJAX requests
+     */
+    public static function verify_ajax_nonce($nonce, $action) {
+        if (!wp_verify_nonce($nonce, $action)) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed. Please refresh the page and try again.', 'gf-user-select')
+            ));
+        }
+    }
+
+    /**
+     * Sanitize user data for output
+     */
+    public static function sanitize_user_data($user_data) {
+        if (!is_array($user_data)) {
+            return sanitize_text_field($user_data);
+        }
+        
+        $sanitized = array();
+        foreach ($user_data as $key => $value) {
+            if (is_array($value)) {
+                $sanitized[$key] = self::sanitize_user_data($value);
+            } else {
+                $sanitized[$key] = sanitize_text_field($value);
+            }
+        }
+        
+        return $sanitized;
+    }
+
+    /**
+     * Escape user data for output
+     */
+    public static function escape_user_data($user_data, $context = 'display') {
+        if (!is_array($user_data)) {
+            return esc_html($user_data);
+        }
+        
+        $escaped = array();
+        foreach ($user_data as $key => $value) {
+            if (is_array($value)) {
+                $escaped[$key] = self::escape_user_data($value, $context);
+            } else {
+                $escaped[$key] = esc_html($value);
+            }
+        }
+        
+        return $escaped;
+    }
 }
 
 // Initialize the plugin
 GF_User_Select::get_instance();
+
