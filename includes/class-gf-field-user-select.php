@@ -163,7 +163,7 @@ class GF_Field_User_Select extends GF_Field_Select {
         $use_search = $searchable && $user_count >= $search_threshold;
 
         // Get choices
-        $choices = $this->get_choices($users, $display_format, $custom_template, $allow_empty);
+        $choices = $this->get_user_choices($users, $display_format, $custom_template, $allow_empty);
 
         // Auto-select current user if enabled
         if ($auto_select_current && !$is_form_editor && !$is_entry_detail && is_user_logged_in()) {
@@ -199,9 +199,9 @@ class GF_Field_User_Select extends GF_Field_Select {
     }
 
     /**
-     * Get choices for dropdown
+     * Get user choices for dropdown
      */
-    private function get_choices($users, $display_format, $custom_template, $allow_empty) {
+    public function get_user_choices($users, $display_format, $custom_template, $allow_empty) {
         $choices = array();
 
         // Add empty option if allowed
