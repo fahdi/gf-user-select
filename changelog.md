@@ -53,6 +53,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper error handling
 - Graceful degradation
 
+## [1.0.1] - 2025-01-27
+
+### Fixed
+- Minor bug fixes and improvements
+- Enhanced security features
+- Performance optimizations
+
 ## [Unreleased]
 
 ### Planned Features
