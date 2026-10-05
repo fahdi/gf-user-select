@@ -52,7 +52,6 @@ class GF_User_Select {
      */
     private function __construct() {
         add_action('plugins_loaded', array($this, 'init'));
-        add_action('init', array($this, 'security_init'));
     }
 
     /**
@@ -70,20 +69,6 @@ class GF_User_Select {
 
         // Initialize hooks
         $this->init_hooks();
-    }
-
-    /**
-     * Security initialization
-     */
-    public function security_init() {
-        // Add security headers
-        add_action('send_headers', array($this, 'add_security_headers'));
-        
-        // Sanitize and validate all inputs
-        add_action('init', array($this, 'sanitize_inputs'));
-        
-        // Add capability checks
-        add_action('admin_init', array($this, 'check_admin_capabilities'));
     }
 
     /**
@@ -183,50 +168,6 @@ class GF_User_Select {
         
         // Clear user list caches
         $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'gf_user_select_cache_%'");
-    }
-
-    /**
-     * Add security headers
-     */
-    public function add_security_headers() {
-        if (!headers_sent()) {
-            // Prevent clickjacking
-            header('X-Frame-Options: SAMEORIGIN');
-            
-            // Prevent MIME type sniffing
-            header('X-Content-Type-Options: nosniff');
-            
-            // XSS Protection
-            header('X-XSS-Protection: 1; mode=block');
-            
-            // Referrer Policy
-            header('Referrer-Policy: strict-origin-when-cross-origin');
-        }
-    }
-
-    /**
-     * Sanitize inputs
-     */
-    public function sanitize_inputs() {
-        // Sanitize GET parameters
-        if (!empty($_GET)) {
-            $_GET = array_map('sanitize_text_field', $_GET);
-        }
-        
-        // Sanitize POST parameters (except for form submissions)
-        if (!empty($_POST) && !isset($_POST['gform_submit'])) {
-            $_POST = array_map('sanitize_text_field', $_POST);
-        }
-    }
-
-    /**
-     * Check admin capabilities
-     */
-    public function check_admin_capabilities() {
-        if (is_admin() && !current_user_can('manage_options')) {
-            // Log unauthorized access attempts
-            error_log('GF User Select: Unauthorized admin access attempt from user ID: ' . get_current_user_id());
-        }
     }
 
     /**
