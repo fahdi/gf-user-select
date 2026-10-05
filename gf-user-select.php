@@ -124,6 +124,7 @@ class GF_User_Select {
         }
 
         GF_Fields::register(new GF_Field_User_Select());
+        GF_Field_User_Select::register_hooks();
     }
 
     /**
